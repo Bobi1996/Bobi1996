@@ -1,0 +1,54 @@
+print('''
+BlueRose Room
+
+o(=(=(=(=)=)=)=)o
+ !!!!!!}!{!!!!!!                                                ___ 
+ !!!!!} | {!!!!!                                               /   \
+ !!!!}  |  {!!!!     _!_     ()              ()     _!_       | //  |
+ !!!'   |   '!!!    |~@~|    ||______________||    |~@~|      |     |
+ ~@~----+----~@~    |___|    |                |    |___|       \___/
+ !!!    |    !!!      |      |      ~@@~      |      |       _________
+ !!!    |    !!!     ( )     |_______  _______|     ( )     |____-____|
+ !!!____|____!!!  __(___)__  {__~@~__}{__~@~__}  __(___)__  |____-____|
+ !!!=========!!!   |__-__|   %%%%%%%%%%%%%%%%%%   |__-__|   |____-____|
+_!!!_________!!!___|_____|_ %%%%%%%%%%%%%%%%%%%% _|_____|___|____-____|_
+                   |     | %%%%%%%%%%%%%%%%%%%%%% |     |   |/       \|
+                          %%%%%%%%%%%%%%%%%%%%%%%%
+                         %%%%%%%%%%%%%%%%%%%%%%%%%%
+                        %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                       /!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
+                       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+                       !!!!!!!!!!!!!!!!!!!!!!!!!!lc!!
+                       `======~@~==========~@~======`
+                      `==============================`
+                     `====~@~==================~@~====`
+                    `==================================`
+                   `==~@~==========================~@~==`
+''')
+print("Welcome to the BlueRose Hotel!" "Your mission is to find your safe room." )
+print("The Hotel is cursed from a evil witch, the hotel is full with dragons and black holes")
+
+levels = str(input("Pick one of the three floors! FIRST, SECOND , or THIRD  "))
+
+
+if levels == "FIRST":
+    print("Now you are on the first floor!")
+
+elif levels == "SECOND":
+    print("Now you are on the second floor")
+
+elif levels == "THIRD":
+    print("Now you are on the third floor")
+
+choose_room = input("The safe room is somewhere here, maybe in the middle of the hallway"
+                    " ? "
+                    "choose one of the three rooms FIRST, SECOND OR THIRD ")
+
+if choose_room == str("FIRST"):
+    print("Ups, you get attacked by a dragon GAME OVER!")
+
+elif choose_room == str("SECOND"):
+    print("Well done! This is the safe room. YOU WIN THE GAME!")
+
+elif choose_room == str("THIRD"):
+    print("You fell in a black hole.. GAME OVER!")
