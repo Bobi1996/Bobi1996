@@ -1,0 +1,48 @@
+import psycopg2
+import pandas as pd
+
+conn = psycopg2.connect(
+    dbname="Kaufland",
+    user="bobi",
+    password="123456",
+    host="localhost",
+    port="5432"
+)
+
+query = "SELECT * FROM BulgarianGDP"
+data = pd.read_sql(query, conn)
+
+conn.close()
+
+import matplotlib.pyplot as plt
+
+
+plt.plot(data['year'], data['gdp'], marker='o', linestyle=':', color='b', label='GDP')
+plt.plot(data['year'], data['percapita'], marker='o', linestyle=':', color='g', label='Per Capita')
+plt.plot(data['year'], data['growth'], marker='o', linestyle=':', color='r', label='Growth (%)')
+plt.xlabel('Year')
+plt.ylabel('GDP (in $B)')
+plt.title('Bulgarian GDP From 2015 to 2022')
+plt.xticks(rotation=46)
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+
+#plt.bar(data['year'], data['gdp'], data['percapita'], data['growth'])
+#plt.xlabel('Year')
+#plt.ylabel('GDP (in $B)')
+#plt.title('Bulgarian GDP Over Years')
+#plt.xticks(rotation=45)
+#plt.show()
+
+
+#sizes = [15, 30, 45, 10]
+#labels = ['A', 'B', 'C', 'D']
+
+#plt.pie(sizes,  labels=labels, autopct='%1.1f%%')
+#circle = plt.Circle((0, 0), 0.8, color='white')
+#plt.gca().add_artist(circle)
+#plt.title('Buglarian GDP from 2015 to 2023')
+#plt.show()
