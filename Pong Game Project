@@ -1,0 +1,187 @@
+MAIN
+import random
+import turtle
+from pong import Pong
+from score import Score
+from turtle import Screen
+
+screen = Screen()
+screen.screensize(400, 400)
+screen.bgcolor("black")
+
+pong = Pong()
+ball = Pong()
+score = Score()
+
+score_player_1 = Score()
+score_player_2 = Score()
+
+Player_1 = turtle.Turtle()
+Player_1.shape("square")
+Player_1.shapesize(3.0, 1.0, 1)
+Player_1.penup()
+Player_1.setpos(350, 30)
+Player_1.color("white")
+
+Player_2 = turtle.Turtle()
+Player_2.shape("square")
+Player_2.shapesize(3.0, 1.0, 1, )
+Player_2.setpos(-350, 30)
+Player_2.color("white")
+
+turtle.setheading(0)
+Player_1_command = None
+
+
+# two pong players
+
+def move():
+    global Player_1
+    if Player_1_command == 'w':
+        Player_1.sety(Player_1.ycor() + 50)
+        # Player_1.setheading(90)
+        # Player_1.forward(50)
+        # x, y, = Player_1.pos()
+        # Player_1.setpos(x, y + 20)
+
+    if Player_1_command == 's':
+        Player_1.sety(Player_1.ycor() - 50)
+        # Player_1.setheading(-90)
+        # Player_1.forward(50)
+
+
+def set_command(command):
+    global Player_1_command
+    Player_1_command = command
+    move()
+
+
+def move_Player_2_track_ball():
+    Player_2.penup()
+    ball_y = ball.ycor()
+    player_2_y = Player_2.ycor()
+
+    if player_2_y < ball_y:
+        Player_2.sety(player_2_y + 10)
+    elif player_2_y > ball_y:
+        Player_2.sety(player_2_y - 10)
+
+
+def keep_moving_player_2():
+    move_Player_2_track_ball()
+    screen.ontimer(keep_moving_player_2, 50)
+
+
+keep_moving_player_2()
+
+screen.listen()
+screen.onkey(lambda: set_command('w'), key='w')
+screen.onkey(lambda: set_command('s'), key='s')
+
+
+# ball pong
+def move_ball():
+    ball.move()
+
+    if ball.ycor() > 290 or ball.ycor() < -290:
+        ball.bounce_y()
+
+    if ball.xcor() > 340 and (Player_1.ycor() + 50 > ball.ycor() > Player_1.ycor() - 50):
+        ball.bounce_x()
+
+    if ball.xcor() < -340 and (Player_2.ycor() + 50 > ball.ycor() > Player_2.ycor() - 50):
+        ball.bounce_x()
+
+    if ball.xcor() > 380:
+        ball.reset_position()
+        score_player_1.increase_score()
+
+    if ball.xcor() < -380:
+        ball.reset_position()
+        score_player_2.increase_score()
+
+    screen.ontimer(move_ball, 50)
+
+
+score_player_1.check_score()
+move_ball()
+keep_moving_player_2()
+screen.mainloop()
+screen.exitonclick()
+
+# to make the pong ball
+# to store the score
+# to hit the pong to the other player
+# to not exit from the screen
+# to bounce from the wall
+
+# PONG
+
+from turtle import Turtle
+
+
+class Pong(Turtle):
+
+    def __init__(self):
+        super().__init__()
+        self.hideturtle()
+        self.shape("circle")
+        self.shapesize(stretch_len=0.5, stretch_wid=0.5)
+        self.color("white")
+        self.penup()
+        self.speed("fastest")
+        self.x_move = 10
+        self.y_move = 10
+
+    def refresh(self):
+        self.goto(0, 0)
+        self.bounce_x()
+
+    def move(self):
+        self.showturtle()
+        new_x = self.xcor() + self.x_move
+        new_y = self.ycor() + self.y_move
+        self.goto(new_x, new_y)
+
+    def bounce_y(self):
+        self.y_move *= -1
+
+    def bounce_x(self):
+        self.x_move *= -1
+
+    def reset_position(self):
+        self.refresh()
+
+# to make the pong ball
+# to store the score
+# to hit the pong to the other player
+# to not exit from the screen
+
+# SCORE
+
+from turtle import Turtle
+
+
+class Score(Turtle):
+    def __init__(self):
+        super().__init__()
+        self.score = 0
+        self.color("white")
+        self.penup()
+        self.hideturtle()
+        self.goto(0, 250)
+        self.update_score()
+        # self.write("Score = 0", align="right", font=('Arial', 8, 'normal'))
+
+    def update_score(self):
+        self.clear()
+        # self.write(f"Score: {self.score}", align="center", font=('Arial', 16, 'normal'))
+
+    def increase_score(self):
+        self.score += 1
+        self.update_score()
+        self.write(f"Score: {self.score}", align="center", font=('Arial', 16, 'normal'))
+
+    def check_score(self):
+        print(f"Your current score is: {self.score}")
+# to bounce from the wall
