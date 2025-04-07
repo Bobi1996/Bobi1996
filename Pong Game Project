@@ -156,6 +156,8 @@ class Pong(Turtle):
 # to store the score
 # to hit the pong to the other player
 # to not exit from the screen
+# to bounce from the wall
+
 
 # SCORE
 
@@ -184,4 +186,3 @@ class Score(Turtle):
 
     def check_score(self):
         print(f"Your current score is: {self.score}")
-# to bounce from the wall
