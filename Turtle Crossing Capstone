@@ -1,0 +1,152 @@
+Turtle Crossing Capstone / Difficulty Expert 🤯
+
+# Main
+
+import time
+import turtle
+from turtle import Turtle, Screen
+from move import Car
+from blocks import Square
+from score import Score
+import random
+
+screen = Screen()
+screen.screensize(canvwidth=600, canvheight=600)
+screen.bgcolor("white")
+
+move = Car()
+user_command = None
+blocks = Square()
+score = Score()
+
+screen.tracer(0)
+
+squares = []
+for _ in range(5):
+    s = Square()
+    squares.append(s)
+
+frame_count = 0
+game_is_on = True
+
+
+def set_command(command):
+    global user_command
+    user_command = command
+
+
+screen.onkey(lambda: set_command('w'), key='w')
+screen.onkey(lambda: set_command('s'), key='s')
+
+screen.listen()
+
+while game_is_on:
+    move.moving(user_command)
+    user_command = None
+
+    if move.ycor() > 280:
+        move.setpos(0, -300)
+        score.increase_score()
+
+    for square in squares:
+        square.forward(2)
+        if move.distance(square) < 20:
+            game_is_on = False
+            move.game_over()
+
+    frame_count += 3
+    if frame_count % 30 == 0:
+        new_square = Square()
+        squares.append(new_square)
+
+    screen.update()
+    time.sleep(0.01)
+
+
+
+
+
+
+screen.mainloop()
+
+screen.exitonclick()
+
+# Class Move
+
+import turtle
+from turtle import Turtle
+
+
+class Car(Turtle):
+    def __init__(self):
+        super().__init__()
+        self.hideturtle()
+        self.shape("turtle")
+        self.color("yellow")
+        self.penup()
+        self.setpos(0, -300)
+        self.right(-90)
+        self.showturtle()
+        self.speed(0)
+
+    def moving(self, user_command):
+        if user_command == 'w':
+            self.speed(1)
+            self.forward(10)
+
+        elif user_command == 's':
+            self.speed(1)
+            self.back(10)
+
+
+    def game_over(self):
+          self.goto(0, 0)
+          self.write("GAME OVER", align="center", font=('Arial', 16, 'bold'))
+
+# Class Blocks
+
+import random
+import turtle
+from turtle import Turtle
+
+
+class Square(Turtle):
+    def __init__(self):
+        super().__init__()
+        self.shape("square")
+        self.penup()
+        self.color(random.choice(["red", "blue", "green", "yellow"]))
+        self.speed(5)
+        self.setpos(0, -10)
+        self.forward(350)
+        start_y = random.randint(-250, 250)
+        self.setpos(300, start_y)
+        self.setheading(180)
+
+# Class Score
+
+import turtle
+from turtle import Turtle
+
+
+class Score(Turtle):
+    def __init__(self):
+        super().__init__()
+        self.score = 0
+        self.hideturtle()
+        self.penup()
+        self.color("black")
+        self.goto(0, 220)
+        self.update_score()
+
+    def update_score(self):
+        self.clear()
+
+    def increase_score(self):
+        self.score += 1
+        self.update_score()
+        self.write(f"Level: {self.score}", align="center", font=('Arial', 16, 'normal'))
+
+    def check_score(self):
+        print(f"Your current level is: {self.score}")
+
