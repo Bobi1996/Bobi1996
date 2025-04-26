@@ -1,0 +1,128 @@
+1. Main code
+import turtle
+from turtle import Turtle
+from turtle import Screen
+from states import States
+from countdown import Time
+from missingstates import MissingStates
+import time
+import pandas as pd
+
+# image = r"C:\Users\PC\OneDrive\Работен плот\blank_states_img.gif"
+screen = Screen()
+screen.setup(width=680, height=490)
+screen.title("Choose a state")
+screen.bgpic("blank_states_img.gif")
+
+states_data = pd.read_csv("50_states.csv")
+all_states = states_data.state.to_list()
+guessed_states = []
+
+states = States()
+
+
+
+def stop_game():
+    missing_states_saver = MissingStates(all_states, guessed_states)
+    missing_states_saver.save_missing_states()
+    print("Missing states saved!")
+    turtle.bye()
+
+
+countdown = Time(screen, on_timeout=stop_game)
+
+
+while len(guessed_states) < 50:
+    answer_state = screen.textinput(title=f"{len(guessed_states)}/50 States Correct",
+                                    prompt="What's another states's name?")
+    if answer_state is None:
+        stop_game()
+        break
+
+    answer_state = answer_state.title()
+
+    if answer_state == "Exit":
+        stop_game()
+        break
+
+    if answer_state in all_states and answer_state not in guessed_states:
+        guessed_states.append(answer_state)
+        state_row = states_data[states_data.state == answer_state]
+        x = int(state_row.x)
+        y = int(state_row.y)
+        states.write_state(answer_state, x, y)
+
+
+
+
+turtle.mainloop()
+
+2. #class countdown
+
+import turtle
+from turtle import Turtle
+
+
+class Time():
+    def __init__(self, screen, on_timeout):
+        self.screen = screen
+        self.timer_turtle = turtle.Turtle()
+        self.timer_turtle.hideturtle()
+        self.timer_turtle.penup()
+        self.timer_turtle.goto(-300, 200)
+        self.timer_turtle.color("red")
+        self.time_left = 10 * 60
+        self.on_timeout = on_timeout
+        self.update_timer()
+
+
+    def update_timer(self):
+        minutes = self.time_left // 60
+        seconds = self.time_left % 60
+        self.timer_turtle.clear()
+        self.timer_turtle.write(f"{minutes:02}:{seconds:02}", align="left", font=("Arial", 30, "bold"))
+
+        if self.time_left > 0:
+            self.time_left -= 1
+            self.screen.ontimer(self.update_timer, 1000)
+
+        else:
+            self.timer_turtle.clear()
+            self.timer_turtle.goto(0,0)
+            self.timer_turtle.write("Time's up!", align="center", font=("Arial", 40, "bold"))
+            self.on_timeout()
+
+3. #class states
+
+import turtle
+from turtle import Turtle
+
+
+class States(Turtle):
+    def __init__(self):
+        super().__init__()
+        self.hideturtle()
+        self.penup()
+        self.color("black")
+
+
+
+# Choose the state
+    def write_state(self, name, x, y):
+        self.goto(x, y)
+        self.write(name, align="center", font=("Arial", 10, "normal"))
+
+4. #class missingstates and themissingstates.csv file
+
+import pandas as pd
+
+
+class MissingStates:
+    def __init__(self, all_states, guessed_states):
+        self.all_states = all_states
+        self.guessed_states = guessed_states
+
+    def save_missing_states(self):
+        missing_states = [state for state in self.all_states if state not in self.guessed_states]
+        new_data = pd.DataFrame(missing_states, columns=["Missing States"])
+        new_data.to_csv("themissingstates.csv", index=False)
