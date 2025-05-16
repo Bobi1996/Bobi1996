@@ -1,0 +1,160 @@
+#1 Main
+from tkinter import *
+import random
+import pandas as pd
+from Age import Widgets
+from Generate import Question
+
+if __name__ == "__main__":
+    root = Tk()
+    app = Widgets(root)
+    root.mainloop()
+
+#2 Age
+from tkinter import *
+import pandas as pd
+import random
+# root = Tk()
+
+class Widgets:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Bobi history quiz")
+        self.master.minsize(width=800, height=700)
+        self.master.config(padx=20, pady=20)
+
+        self.bg = PhotoImage(file=r"C:\Users\PC\PycharmProjects Day 27 Tkinter\pythonProject1\my_image.png")
+        self.label = Label(master, image=self.bg)
+        self.label.place(x=0, y=0, relwidth=1, relheight=1)
+        self.frame1 = Frame(master, bg="white")
+        self.frame1.pack(pady=20)
+
+
+        # Labels
+        self.title_label = Label(text="Let's try your history knowledge", font=("Arial", 15, "bold"))
+        self.title_label.pack()
+        self.title_label.place(x=220, y=0)
+
+
+
+        self.prompt_label = Label(text="Please, choose an age!", bg="grey")
+        self.prompt_label.pack()
+        self.prompt_label.place(x=0, y=100)
+
+
+        # Entry
+        self.input_entry = Entry(width=40)
+        self.input_entry.insert(END, string="Enter your answer here")
+        self.input_entry.pack(pady=20)
+        self.input_entry.place(x=260, y=510)
+
+
+        # Question display
+        self.question_label = Label(text="", font=("Arial", 12), wraplength=500)
+        self.question_label.pack(pady=10)
+
+        # Result display
+        self.result_label = Label(text="", font=("Arial", 12), fg="blue")
+        self.result_label.pack(pady=10)
+
+        # Answer button
+        self.button = Button(text="Submit Answer", command=self.button_clicked)
+        self.button.pack(pady=5)
+        self.button.place(x=330, y=530)
+
+
+        # Age selector
+        self.ages = IntVar()
+
+        age_options = [
+            ("Chalcolithic Age", 1),
+            ("Bronze Age", 2),
+            ("Iron Age", 3),
+            ("Classical Antiquity", 4),
+            ("Middle Ages", 5),
+            ("Modernity", 6),
+        ]
+
+        for text, value in age_options:
+            r = Radiobutton(text=text, variable=self.ages, value=value, command=self.pick_age)
+            r.pack(anchor="w")
+
+        self.correct_answer = ""
+
+    def button_clicked(self):
+         user_answer = self.input_entry.get().strip()
+         if user_answer == self.correct_answer:
+             self.result_label.config(text="✅ Correct!")
+         else:
+             self.result_label.config(text=f"❌ Wrong! Correct answer: {self.correct_answer}")
+
+    def pick_age(self):
+         age_value = self.ages.get()
+         file_map = {
+             # 1: "chalcolithic_age",
+             1: r"C:\Users\PC\PycharmProjects Day 27 Tkinter\pythonProject1\chalcolithic_age",
+             2: r"C:\Users\PC\PycharmProjects Day 27 Tkinter\pythonProject1\bronze_age",
+             3: r"C:\Users\PC\PycharmProjects Day 27 Tkinter\pythonProject1\iron_age",
+             4: r"C:\Users\PC\PycharmProjects Day 27 Tkinter\pythonProject1\classical_antiquity",
+             5: r"C:\Users\PC\PycharmProjects Day 27 Tkinter\pythonProject1\middle_ages",
+             6: r"C:\Users\PC\PycharmProjects Day 27 Tkinter\pythonProject1\modernity"
+         }
+
+         file_name = file_map.get(age_value)
+
+         try:
+             df = pd.read_csv(file_name)
+             selected_row = df.sample(1).iloc[0]
+             question = selected_row["history_name"]
+             self.correct_answer = str(selected_row["year_of_event"]).strip()
+             self.question_label.config(text=question)
+             self.result_label.config(text="")  # Reset result
+         except FileNotFoundError:
+             self.question_label.config(text=f"File '{file_name}' not found.")
+         except Exception as e:
+             self.question_label.config(text=f"Error: {e}")
+#3 Generate
+from tkinter import *
+import pandas as pd
+import random
+
+class Question:
+    def __init__(self, master):
+        self.master = master
+        self.ages = IntVar()
+
+        # Label to display question
+        self.question_label = Label(master, text="", font=("Arial", 12), wraplength=500)
+        self.question_label.pack(pady=20)
+
+        # Age selection radio buttons
+        age_names = [
+            "Ahalcolithic Age", "Bronze Age", "Iron Age",
+            "Classical Antiquity", "Middle Ages", "Modernity"
+        ]
+        for i, name in enumerate(age_names, start=1):
+            Radiobutton(master, text=name, variable=self.ages, value=i, command=self.pick_age).pack()
+
+    def pick_age(self):
+        age_value = self.ages.get()
+        file_map = {
+            # r"C:\Users\PC\PycharmProjects Day 27 Tkinter\pythonProject1\my_image.png"
+            1: "chalcolithic_age",
+            2: "bronze_age",
+            3: "iron_age",
+            4: "classical_antiquity",
+            5: "middle_ages",
+            6: "modernity"
+        }
+
+        file_name = file_map.get(age_value)
+        try:
+            df = pd.read_csv(file_name)
+            question = random.choice(df["history_name"].tolist())
+            self.question_label.config(text=question)
+        except FileNotFoundError:
+            self.question_label.config(text=f"File '{file_name}' not found.")
+        except Exception as e:
+            self.question_label.config(text=f"Error: {e}")
+
+# The data files, are upload from PostgreSQL (Psycopg2). Into CSV files, through Pandas.
