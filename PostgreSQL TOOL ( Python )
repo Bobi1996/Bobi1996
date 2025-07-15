@@ -1,0 +1,91 @@
+import tkinter
+from tkinter import *
+import tkinter.messagebox
+import csv
+import os
+
+window = Tk()
+window.title("Bobi SQL Project")
+window.minsize(width=450, height=500)
+window.config(padx=60, pady=60)
+
+add_id = Label(window, text="Add stock id", font=("Arial", 8, "normal"))
+add_id.place(x=50, y=-35)
+
+add_id1 = Entry(window, width=5)
+add_id1.place(x=200, y=-35)
+
+add_stock = Label(window, text="Add stock name", font=("Arial", 8, "normal"))
+add_stock.place(x=50, y=5)
+
+add_stock1 = Entry(window, width=10)
+add_stock1.place(x=200, y=5)
+
+add_brand = Label(window, text="Add brand name", font=("Arial", 8, "normal"))
+add_brand.place(x=50, y=45)
+
+add_brand1 = Entry(window, width=10)
+add_brand1.place(x=200, y=45)
+
+add_year = Label(window, text="Add date of manufacture", font=("Arial", 8, "normal"))
+add_year.place(x=50, y=80)
+
+add_year1 = Entry(window, width=15)
+add_year1.place(x=200, y=80)
+
+bg = PhotoImage(
+    file=r"sql.png"
+)
+label = Label(image=bg)
+label.place(x=0, y=100, relwidth=1, relheight=1)
+
+file_path = os.path.join(os.path.abspath("."), "new_file.txt")
+while True:
+    def add():
+        with open(file_path, 'a', newline='') as test:
+            writer = csv.writer(test)
+            writer.writerow([add_id1.get(), add_stock1.get(), add_brand1.get(), add_year1.get()])
+            print(f"{add_id1.get()} {add_stock1.get()} {add_brand1.get()} {add_year1.get()}\n")
+            test.close()
+
+
+    user_button1 = Button(text="Add your information", command=add)
+    user_button1.place(x=200, y=120)
+    add()
+
+
+    def remove():
+        user_choice = f"{add_id1.get().strip()},{add_stock1.get().strip()},{add_brand1.get().strip()},{add_year1.get().strip()}"
+        with open(file_path, 'r+', newline='') as test:
+            lines = test.readlines()
+            test.seek(0)
+            for line in lines:
+                if line.strip() != user_choice:
+                    test.write(line)
+            test.truncate()
+
+
+    user_button2 = Button(text="Remove from magazine", command=remove)
+    user_button2.place(x=50, y=120)
+    remove()
+
+
+    def item():
+        user_choice = f"{add_id1.get().strip()},{add_stock1.get().strip()},{add_brand1.get().strip()},{add_year1.get().strip()}"
+        with open(file_path, 'r', newline='') as test:
+            line = test.readlines()
+            for row in line:
+                if user_choice in row:
+                    print('String exists in file')
+                    tkinter.messagebox.showinfo("The value exists", f"{row}")
+                elif user_choice not in row:
+                    tkinter.messagebox.showerror("The value is not exists", "There's no data")
+                    print("There's no data")
+
+
+    user_button3 = Button(text="Search for an item", command=item)
+    user_button3.place(x=50, y=150)
+    break
+# To make the app to be able to remove values, add values, edit values in the table.
+
+window.mainloop()
