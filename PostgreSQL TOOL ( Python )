@@ -86,6 +86,5 @@ while True:
     user_button3 = Button(text="Search for an item", command=item)
     user_button3.place(x=50, y=150)
     break
-# To make the app to be able to remove values, add values, edit values in the table.
 
 window.mainloop()
