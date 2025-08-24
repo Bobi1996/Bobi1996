@@ -1,0 +1,151 @@
+#  Create the database
+
+import tkinter
+from tkinter import *
+from tkinter import PhotoImage
+import tkinter.messagebox
+
+# cur.execute("CREATE TABLE fitness(number_id SERIAL PRIMARY KEY, exercise TEXT, calories DECIMAL, when_exercise TIMESTAMP)")
+# cur.execute("SELECT * FROM fitness")
+# rows = cur.fetchall()
+# for row in rows:
+#     print(row)
+
+# Create the look
+
+
+window = Tk()
+window.title("Bobi powerlifting tracker")
+window.minsize(width=700, height=230)
+window.config(padx=70, pady=60)
+
+image = PhotoImage(file='photo.png')
+image_label = tkinter.Label(window, image=image)
+image_label.pack()
+
+add_exercise = Label(window, text="Add your exercise", font=("Arial", 15, "normal"))
+add_exercise.place(x=-35, y=-20)
+
+add_exercise1 = Entry(window, width=15)
+add_exercise1.place(x=150, y=-12)
+
+add_duration = Label(window, text="Add the duration in minutes", font=("Arial", 15, "normal"))
+add_duration.place(x=-35, y=15)
+
+add_duration1 = Entry(window, width=5)
+add_duration1.place(x=230, y=20)
+
+when_exercise = Label(window, text="What date, month and year was perform the exercise", font=("Arial", 15, "normal"))
+when_exercise.place(x=-35, y=45)
+
+when_exercise1 = Entry(window, width=15)
+when_exercise1.place(x=450, y=52)
+
+add_weight = Label(window, text="Add your weight", font=("Arial", 15, "normal"))
+add_weight.place(x=-35, y=80)
+
+add_weight1 = Entry(window, width=8)
+add_weight1.place(x=130, y=85)
+
+add_weight_lifted = Label(window, text="Add weight lifted", font=("Arial", 15, "normal"))
+add_weight_lifted.place(x=-35, y=120)
+
+add_weight_lifted = Entry(window, width=7)
+add_weight_lifted.place(x=140, y=125)
+
+add_reps = Label(window, text="Add reps performed", font=("Arial", 15, "normal"))
+add_reps.place(x=-35, y=160)
+
+add_reps = Entry(window, width=5)
+add_reps.place(x=160, y=165)
+
+add_sets = Label(window, text="Add sets performed", font=("Arial", 15, "normal"))
+add_sets.place(x=-35, y=195)
+
+add_sets = Entry(window, width=5)
+add_sets.place(x=160, y=200)
+
+import psycopg2
+
+while True:
+    def formula(value1, value2):
+        # return int(value1) * int(value2) * 1.05
+        return 0.0175 * 6.0 * int(value1) * int(value2)
+
+
+    conn = psycopg2.connect(
+        dbname="postgres",
+        user="postgres",
+        password="123456",
+        host="localhost",
+        port="5433"
+    )
+
+    conn.autocommit = False
+
+    cur = conn.cursor()
+
+
+    def add():
+        values = formula(1, 2)
+        value1 = add_duration1.get()
+        value2 = add_weight1.get()
+        value3 = str(add_exercise1.get())
+        if any(word and word[0].islower() for word in value3.split()):
+            tkinter.messagebox.showerror("Error", "Sorry, the letters of every word must be upper!")
+            raise Exception("Sorry, the letters of every word must be upper! ")
+        value4 = str(when_exercise1.get())
+        value5 = str(add_weight_lifted.get())
+        value6 = int(add_reps.get())
+        value7 = int(add_sets.get())
+        results = (add_duration1.get(), "*", add_weight1.get(), "=", formula(add_duration1.get(), add_weight1.get()))
+        cur.execute(
+            "INSERT INTO fitness (results_in_minutes, body_weight, calories_burned, exercise, when_exercise, weight_lifted, reps, sets) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+            (value1, value2, results, value3, value4, value5, value6, value7))
+        print(f"The values are added {values}")
+        tkinter.messagebox.showinfo("Your burned calories are", f"{results}")
+        cur.connection.cursor()
+        for notice in conn.notices:
+               print("Trigger notice", notice.strip())
+        tkinter.messagebox.showinfo("Your burned calories are", f"{conn.notices}")
+
+        conn.commit()
+
+    def exercise():
+        cur.execute("SELECT * FROM fitness")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row)
+        tkinter.messagebox.showinfo("Your exercises are", f"{rows}")
+
+
+    def search():
+        if add_exercise1.get() == 'Squat':
+            cur.execute("SELECT * FROM fitness WHERE exercise = 'Squat' ")
+        elif add_exercise1.get() == 'Bench Press':
+            cur.execute("SELECT * FROM fitness WHERE exercise = 'Bench Press' ")
+        elif add_exercise1.get() == 'Deadlift':
+            cur.execute("SELECT * FROM fitness WHERE exercise = 'Deadlift' ")
+        elif add_exercise1.get().islower():
+            tkinter.messagebox.showerror("Error", "Sorry, the letters of every word must be upper!")
+            raise Exception("Sorry, the letters of every word must be upper! ")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row)
+        tkinter.messagebox.showinfo("Your exercises are", f"{rows}")
+
+        # conn.commit()
+        # conn.close()
+        # cur.close()
+
+
+    user_button1 = Button(window, text="Add your information", command=add)
+    user_button1.place(x=50, y=240)
+    user_button2 = Button(window, text="Show your workouts", command=exercise)
+    user_button2.place(x=200, y=240)
+    user_button3 = Button(window, text="Search for exercise", command=search)
+    user_button3.place(x=345, y=240)
+
+    break
+
+window.mainloop()
