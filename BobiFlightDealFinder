@@ -1,0 +1,224 @@
+1. main.py code -
+import kivy
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.graphics import Rectangle
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.image import Image
+from kivy.uix.popup import Popup
+from amadeus import Client
+from dotenv import load_dotenv
+import os
+from test import Flights
+
+
+class Bobi_flight_app(App):
+    def build(self):
+        # Main layout
+        layout = FloatLayout()
+
+        # Airplane widget
+        Airplane = Image(
+            source='Airplane.png',
+            allow_stretch=True,
+            keep_ratio=False
+        )
+
+        self.flights = Flights()
+
+        self.start_input = TextInput(hint_text="Enter starting location", size_hint=(None, None), size=(400, 60), pos_hint={'x': 0.05, 'top': 0.95})
+        self.end_input = TextInput(hint_text="Enter destination", size_hint=(None, None), size=(400, 60), pos_hint={'x': 0.05, 'top': 0.85})
+        self.when_input = TextInput(hint_text="Please, write a date,month and year for departure", size=(400, 60), size_hint=(None, None), pos_hint={'x': 0.05, 'top': 0.75})
+        self.adults_input = TextInput(hint_text="Please, write how many adults will be on the board ", size=(400, 60), size_hint=(None, None), pos_hint={'x': 0.05, 'top': 0.65})
+        self.currency_input = TextInput(hint_text="Please, write the currency ", size=(400, 60), size_hint=(None, None), pos_hint={'x': 0.05, 'top': 0.55})
+        self.passengers_input = TextInput(hint_text="Please, write how much passengers ", size=(400, 60), size_hint=(None, None), pos_hint={'x': 0.05, 'top': 0.45})
+        self.response = Button(text="Show message", size_hint=(None, None), size=(400, 60), pos_hint={'right': 0.95, 'top': 0.35})
+
+        self.label1 = TextInput(text="From where do you want to take off ?")
+        btn1 = Button(text="Add the starting location ", size_hint=(None, None), size=(400, 60), pos_hint={'right': 0.95, 'top': 0.95})
+        btn1.bind(on_press=self.update_starting)
+
+        self.label2 = TextInput(text="To where do you want to fly ?")
+        btn2 = Button(text="Add the finish location ", size_hint=(None, None), size=(400, 60), pos_hint={'right': 0.95, 'top': 0.85})
+        btn2.bind(on_press=self.update_ending)
+
+        self.label3 = TextInput(text="Please, write a date,month and year for departure")
+        btn3 = Button(text="Add the date,month and year for departure", size_hint=(None, None), size=(400, 60), pos_hint={'right': 0.95, 'top': 0.75})
+        btn3.bind(on_press=self.update_when)
+
+        self.label4 = TextInput(text="Please, write how many adults will be on the board")
+        btn4 = Button(text="Add the adults ", size_hint=(None, None), size=(400, 60), pos_hint={'right': 0.95, 'top': 0.65})
+        btn4.bind(on_press=self.update_adults)
+
+        self.label5 = TextInput(text="Please, write the currency")
+        btn5 = Button(text="Add the currency ", size_hint=(None, None), size=(400, 60), pos_hint={'right': 0.95, 'top': 0.55})
+        btn5.bind(on_press=self.currency)
+
+        self.label6 = TextInput(text="Please, write how many passengers will be on the plane ")
+        btn6 = Button(text="Add the passengers", size_hint=(None, None), size=(400, 60), pos_hint={'right': 0.95, 'top': 0.45})
+        btn6.bind(on_press=self.passengers)
+
+        self.response = Button(text="Search for a flight", size_hint=(None, None), size=(400, 60), pos_hint={'right': 0.95, 'top': 0.35})
+        self.response.bind(on_press=self.show_message)
+
+        # Add widgets to layout
+        layout.add_widget(Airplane)  # Airplane background
+        layout.add_widget(self.start_input)  # The inputs widgets
+        layout.add_widget(btn1)
+        layout.add_widget(self.end_input)
+        layout.add_widget(btn2)
+        layout.add_widget(self.when_input)
+        layout.add_widget(btn3)
+        layout.add_widget(self.adults_input)
+        layout.add_widget(btn4)
+        layout.add_widget(self.currency_input)
+        layout.add_widget(btn5)
+        layout.add_widget(self.passengers_input)
+        layout.add_widget(btn6)
+        layout.add_widget(self.response)
+
+        return layout
+
+    def update_starting(self, instance):
+        self.label1.text = "Add"
+        self.flights.starting = self.start_input.text
+        print(f" {self.flights.starting}")
+
+    def update_ending(self, instance):
+        self.label2.text = "Add"
+        self.flights.ending = self.end_input.text
+        print(f" {self.flights.ending}")
+
+    def update_when(self, instance):
+        self.label3.text = "Add"
+        self.flights.when = self.when_input.text
+        print(f"{self.flights.when}")
+
+    def update_adults(self, instance):
+        self.label4.text = "Add"
+        self.flights.adults = self.adults_input.text
+        print(f"{self.flights.adults}")
+
+    def currency(self, instance):
+        self.label5.text = "Add"
+        self.flights.currency = self.currency_input.text
+        print(f"{self.flights.currency}")
+
+    def passengers(self, instance):
+        self.label6.text = "Add"
+        self.flights.passengers = self.passengers_input.text
+        print(f"{self.flights.passengers}")
+
+    def show_message(self, instance):
+        self.flights.starting = self.start_input.text
+        self.flights.ending = self.end_input.text
+        self.flights.when = self.when_input.text
+        self.flights.adults = int(self.adults_input.text)
+        self.flights.currency = self.currency_input.text
+        self.flights.passengers = int(self.passengers_input.text)
+
+        results = self.flights.ask()
+
+        if results:
+            message = "\n".join(self.flights.response)
+        else:
+            message = "No flights found or an error occurred."
+
+        popup = Popup(
+            title="Message",
+            content=Label(text=message),
+            size_hint=(0.8, 0.6)
+        )
+        popup.open()
+
+        print(f"Airline {self.flights.airline}, Price {self.flights.price}")
+
+2. test.py -
+import os
+from amadeus import Client, ResponseError
+from dotenv import load_dotenv
+import pygsheets
+
+
+class Flights:
+    def __init__(self):
+        self.starting = ""
+        self.ending = ""
+        self.when = ""
+        self.adults = ""
+        self.currency = ""
+        self.passengers = ""
+        self.response = []
+        self.price = []
+        self.airline = []
+        self.airlines = []
+        self.prices = []
+
+        load_dotenv()
+        self.amadeus = Client(
+            client_id=os.environ["Bobi_id"],
+            client_secret=os.environ["Bobi_secret"]
+        )
+
+    def ask(self):
+        try:
+            response = self.amadeus.shopping.flight_offers_search.get(
+                originLocationCode=self.starting,
+                destinationLocationCode=self.ending,
+                departureDate=self.when,
+                adults=int(self.adults),
+                currencyCode=self.currency,
+                max=int(self.passengers)
+            )
+
+            self.response = []
+            self.price = []
+            self.airline = []
+            self.airlines = []
+            self.prices = []
+
+            for offer in response.data:
+                price = offer['price']['total']
+                airline = offer['validatingAirlineCodes'][0]
+                self.price.append(price)
+                self.airline.append(airline)
+                self.response.append(f"Airline: {airline}, Price: {price} {self.currency}")
+                self.airlines.append([airline])
+                self.prices.append([price])
+
+            # Save data to Google Sheets
+            self.client = pygsheets.authorize(service_account_file="nimble-factor-470918-c7-4e8b19f4de5a.json")
+            self.spreadsheet = self.client.open("Bobi cheap flight project")
+            self.worksheet1 = self.spreadsheet.worksheet("title", "Sheet1")
+            self.worksheet1.update_values("A2:A" + str(len(self.airlines) + 1), self.airlines)
+            self.worksheet1.update_values("B2:B" + str(len(self.prices) + 1), self.prices)
+
+            return response.data
+
+        except Exception as e:
+            print("Error fetching flights:", e)
+            return []
+3. The Nimble factor - (google api)
+{
+  "type": "service_account",
+  "project_id": "***********",
+  "private_key_id": "***********",
+  "private_key": "-----BEGIN PRIVATE KEY-----\***********==\n-----END PRIVATE KEY-----\n",
+  "client_email": "***********",
+  "client_id": "***********",
+  "auth_uri": "***********",
+  "token_uri": "***********",
+  "auth_provider_x509_cert_url": "***********",
+  "client_x509_cert_url": "***********",
+  "universe_domain": "***********"
+}
+
+4. env. file (secret id)
+Bobi_id=********
+Bobi_secret=********
+
+
+Bobi_flight_app().run()
