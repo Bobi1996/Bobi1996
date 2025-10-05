@@ -1,0 +1,61 @@
+1.
+import requests
+from bs4 import BeautifulSoup
+from databasse import Data
+
+
+class Website(Data):
+    def __init__(self):
+        super().__init__()
+        self.data = Data()
+        self.url = "https://www.imdb.com/chart/top/"
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        }
+
+        self.response = requests.get(self.url, headers=self.headers)
+        self.soup = BeautifulSoup(self.response.text, "html.parser")
+
+        self.titles = [h3.get_text(strip=True) for h3 in self.soup.select("h3.ipc-title__text")]
+        while True:
+            for self.t in self.titles:
+                self.cur.execute("INSERT INTO bobi_project2025 (movie_name, date_when) VALUES (%s,%s)",
+                                 (self.t, self.current_timestamp))
+            print(self.t)
+
+
+obj = Website()
+
+2.
+import psycopg2
+from datetime import datetime
+
+
+class Data:
+    def __init__(self):
+        self.conn = psycopg2.connect(
+            dbname="bobi_project",
+            user="postgres",
+            password="1996",
+            host="localhost",
+            port="5431"
+
+        )
+
+        self.conn.autocommit = True
+
+        self.current_timestamp = datetime.now()
+
+        self.cur = self.conn.cursor()
+
+        # self.cur.execute("CREATE TABLE IF NOT EXISTS bobi_project2025 (id SERIAL PRIMARY KEY, movie_name TEXT, date_when TIMESTAMPT)")
+
+        # cur.execute("DROP TABLE bobi_project2025")
+        # rows = cur.fetchall()
+
+        # for row in rows: # can with range
+        #     print(rows)
+        # conn.rollback()
+        self.conn.commit()
+        # self.conn.close()
+        # self.cur.close()
