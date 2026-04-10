@@ -1,0 +1,193 @@
+import threading
+import re
+import requests
+import xml.etree.ElementTree as ET
+import webbrowser
+
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.spinner import Spinner
+from kivy.uix.scrollview import ScrollView
+from kivy.clock import Clock
+
+
+EUROSTAT_URL = (
+    "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/"
+    "ESTAT/all/latest?detail=allstubs"
+)
+
+
+class MainLayout(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation="vertical", padding=10, spacing=10, **kwargs)
+
+        # -------- UI CONTROLS -------- #
+        self.source_spinner = Spinner(
+            text="Eurostat",
+            values=("Eurostat", "World Bank"),
+            size_hint_y=None,
+            height=40
+        )
+
+        self.input_text = TextInput(
+            hint_text="Enter keyword (e.g. GDP, population, current account)",
+            size_hint_y=None,
+            height=40,
+            multiline=False
+        )
+
+        self.search_btn = Button(
+            text="Search",
+            size_hint_y=None,
+            height=45
+        )
+        self.search_btn.bind(on_press=self.start_search)
+
+        # -------- OUTPUT AREA -------- #
+        self.output_label = Label(
+            text="Results will appear here...",
+            size_hint_y=None,
+            halign="left",
+            valign="top",
+            markup=True
+        )
+        self.output_label.bind(
+            texture_size=self._update_height,
+            on_ref_press=self.open_link
+        )
+
+        scroll = ScrollView()
+        scroll.add_widget(self.output_label)
+
+        self.add_widget(self.source_spinner)
+        self.add_widget(self.input_text)
+        self.add_widget(self.search_btn)
+        self.add_widget(scroll)
+
+    def _update_height(self, *_):
+        self.output_label.height = self.output_label.texture_size[1]
+        self.output_label.text_size = (self.width - 20, None)
+
+    # -------- ACTIONS -------- #
+    def start_search(self, *_):
+        keyword = self.input_text.text.strip()
+        if not keyword:
+            self.set_output("[color=ff3333]⚠️ Please enter a keyword.[/color]")
+            return
+
+        self.set_output("⏳ Fetching data, please wait...")
+        threading.Thread(
+            target=self.run_search,
+            args=(self.source_spinner.text, keyword),
+            daemon=True
+        ).start()
+
+    def run_search(self, source, keyword):
+        if source == "Eurostat":
+            result = self.search_eurostat(keyword)
+        else:
+            result = self.search_worldbank(keyword)
+
+        Clock.schedule_once(lambda *_: self.set_output(result))
+
+    def set_output(self, text):
+        self.output_label.text = text
+
+    def open_link(self, instance, link):
+        webbrowser.open(link)
+
+    # -------- EUROSTAT SEARCH -------- #
+    def search_eurostat(self, keyword):
+        try:
+            response = requests.get(EUROSTAT_URL, timeout=45)
+            response.raise_for_status()
+            root = ET.fromstring(response.content)
+        except Exception as e:
+            return f"[color=ff3333]❌ Error fetching Eurostat data:\n{e}[/color]"
+
+        ns = {
+            "s": "http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure",
+            "c": "http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common",
+            "xml": "http://www.w3.org/XML/1998/namespace",
+        }
+
+        matches = []
+
+        for dataflow in root.findall(".//s:Dataflow", ns):
+            code = dataflow.get("id")
+            if not code:
+                continue
+
+            name = dataflow.find("c:Name[@xml:lang='en']", ns)
+            if name is None:
+                name = dataflow.find("c:Name", ns)
+
+            if name is not None and keyword.lower() in name.text.lower():
+                link = (
+                    f"https://ec.europa.eu/eurostat/databrowser/view/"
+                    f"{code}/default/table?lang=en"
+                )
+                matches.append(
+                    f"📊 {name.text}\n"
+                    f"[ref={link}][color=00aaff]{link}[/color][/ref]\n"
+                )
+
+        if not matches:
+            return (
+                f"No datasets found for '{keyword}'.\n\n"
+                "Try keywords like:\n"
+                "- gdp\n- quarterly\n- population\n- balance of payments"
+            )
+
+        return "\n".join(matches[:100])
+
+    # -------- WORLD BANK SEARCH -------- #
+    def normalize_text(self, text):
+        text = text.lower()
+        text = re.sub(r'[^a-z0-9\s]', ' ', text)
+        text = re.sub(r'\s+', ' ', text)
+        return text.strip()
+
+    def search_worldbank(self, keyword):
+        url = "https://api.worldbank.org/v2/indicator"
+        params = {"format": "json", "per_page": 2000, "source": 2}
+
+        try:
+            response = requests.get(url, params=params, timeout=45)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as e:
+            return f"[color=ff3333]❌ Error fetching World Bank data:\n{e}[/color]"
+
+        keyword_norm = self.normalize_text(keyword)
+        matches = []
+
+        for item in data[1]:
+            name = item.get("name", "")
+            code = item.get("id", "")
+            if keyword_norm in self.normalize_text(name):
+                link = (
+                    "https://databank.worldbank.org/reports.aspx"
+                    f"?source=2&series={code}"
+                )
+                matches.append(
+                    f"🌍 {name} ({code})\n"
+                    f"[ref={link}][color=00aaff]{link}[/color][/ref]\n"
+                )
+
+        if not matches:
+            return f"No World Bank series found for '{keyword}'."
+
+        return "\n".join(matches[:100])
+
+
+class DataSearchApp(App):
+    def build(self):
+        return MainLayout()
+
+
+if __name__ == "__main__":
+    DataSearchApp().run()
